@@ -3,24 +3,30 @@ var shasum = require('shasum');
 
 module.exports = Basic;
 
-function Basic () { 
-    if (!(this instanceof Basic)) return new Basic;
+function Basic (db, prefix) { 
+    if (!(this instanceof Basic)) return new Basic(db, prefix);
+    this.db = db;
+    this.prefix = prefix;
 }
 
-Basic.prototype.verify = function (db, prefix, creds, cb) {
+Basic.prototype.verify = function (creds, cb) {
     var err = checkCreds(creds);
     if (err) return cb && process.nextTick(function () { cb(err) });
     
-    var key = prefix.concat(creds.username);
-    db.get(key, function (err, value) {
+    var key = this.prefix.concat(creds.username);
+    this.db.get(key, function (err, row) {
         if (err && err.type === 'NotFoundError') {
             return cb(null, false);
         }
         if (err) return cb(err)
+        if (!row.salt) return cb('NOSALT', 'integrity error: no salt found');
+        if (!row.hash) return cb('NOHASH', 'integrity error: no hash found');
         
         var pw = Buffer(creds.password);
-        var h = shasum(Buffer.concat([ salt, pw ]);
-        cb(null, h === value.hash);
+        var salt = Buffer(row.salt, 'hex');
+        
+        var h = shasum(Buffer.concat([ salt, pw ]));
+        cb(null, h === row.hash);
     });
 };
 
@@ -33,7 +39,7 @@ Basic.prototype.create = function (id, creds) {
     
     return [
         {
-            key: [ creds.username ],
+            key: this.prefix.concat(creds.username),
             value: {
                 id: id,
                 hash: shasum(Buffer.concat([ salt, pw ])),
@@ -58,4 +64,10 @@ function checkCreds (creds) {
     if (!Buffer.isBuffer(pw)) {
         return new Error('password must be a string or buffer');
     }
+}
+
+function error (code, msg) {
+    var err = new Error(msg);
+    err.code = err.type = code;
+    return err;
 }
