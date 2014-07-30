@@ -26,7 +26,7 @@ Basic.prototype.verify = function (creds, cb) {
         var salt = Buffer(row.salt, 'hex');
         
         var h = shasum(Buffer.concat([ salt, pw ]));
-        cb(null, h === row.hash);
+        cb(null, h === row.hash, row.id);
     });
 };
 
