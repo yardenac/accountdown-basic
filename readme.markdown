@@ -4,6 +4,8 @@ username/password authentication for
 [accountdown](https://npmjs.org/package/accountdown)
 using salted hashes
 
+[![build status](https://secure.travis-ci.org/substack/accountdown-basic.png)](http://travis-ci.org/substack/accountdown-basic)
+
 # example
 
 ## create an account
