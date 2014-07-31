@@ -1,0 +1,39 @@
+{
+  "name": "accountdown-basic",
+  "version": "1.0.0",
+  "description": "username/password authentication for accountdown using salted hashes",
+  "main": "index.js",
+  "dependencies": {
+    "shasum": "^1.0.0"
+  },
+  "devDependencies": {
+    "tape": "^2.13.2",
+    "accountdown": "^1.0.0",
+    "level-test": "^1.6.3",
+    "through2": "^1.0.0"
+  },
+  "scripts": {
+    "test": "tape test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/substack/accountdown-basic.git"
+  },
+  "homepage": "https://github.com/substack/accountdown-basic",
+  "keywords": [
+    "accountdown",
+    "accountdown-plugin",
+    "authentication",
+    "account",
+    "user",
+    "database",
+    "salt",
+    "hash"
+  ],
+  "author": {
+    "name": "James Halliday",
+    "email": "mail@substack.net",
+    "url": "http://substack.net"
+  },
+  "license": "MIT"
+}
