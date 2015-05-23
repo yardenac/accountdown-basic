@@ -3,17 +3,19 @@ var shasum = require('shasum');
 
 module.exports = Basic;
 
-function Basic (db, prefix) { 
-    if (!(this instanceof Basic)) return new Basic(db, prefix);
+function Basic (db, prefix, accountKey) {
+    if (!(this instanceof Basic)) return new Basic(db, prefix, accountKey);
     this.db = db;
     this.prefix = prefix;
+    this.accountKey = accountKey;
 }
 
 Basic.prototype.verify = function (creds, cb) {
-    var err = checkCreds(creds);
+    var err = checkCreds.bind(this)(creds);
+
     if (err) return cb && process.nextTick(function () { cb(err) });
     
-    var key = this.prefix.concat(creds.username);
+    var key = this.prefix.concat(this.accountKey ? creds[this.accountKey] : creds.username);
     this.db.get(key, function (err, row) {
         if (err && err.type === 'NotFoundError') {
             return cb(null, false);
@@ -31,7 +33,7 @@ Basic.prototype.verify = function (creds, cb) {
 };
 
 Basic.prototype.create = function (id, creds) {
-    var err = checkCreds(creds);
+    var err = checkCreds.bind(this)(creds);
     if (err) return err;
     
     var salt = crypto.randomBytes(16);
@@ -39,7 +41,7 @@ Basic.prototype.create = function (id, creds) {
     
     return [
         {
-            key: this.prefix.concat(creds.username),
+            key: this.prefix.concat(this.accountKey ? creds[this.accountKey] : creds.username),
             value: {
                 id: id,
                 hash: shasum(Buffer.concat([ salt, pw ])),
@@ -53,8 +55,9 @@ function checkCreds (creds) {
     if (!creds || typeof creds !== 'object') {
         return new Error('supplied credentials are not an object');
     }
-    if (!creds.username) {
-        return new Error('username required');
+    var key = this.accountKey ? this.accountKey : 'username';
+    if (!creds[key]) {
+        return new Error(key.concat(' required'));
     }
     var pw = creds.password;
     if (pw === undefined) {
