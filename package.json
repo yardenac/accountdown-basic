@@ -1,6 +1,6 @@
 {
   "name": "accountdown-basic",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "username/password authentication for accountdown using salted hashes",
   "main": "index.js",
   "dependencies": {
