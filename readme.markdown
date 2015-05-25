@@ -93,10 +93,13 @@ batch(db, b.create(user, creds));
 var basic = require('accountdown-basic')
 ```
 
-## var b = basic(db, prefix)
+## var b = basic(db, prefix, opts)
 
 Return a basic auth instance `b` given a database handle `db` and an array
 prefix `prefix`.
+
+Optionally set an `opts.key` to use a different key as the identity than
+`username`.
 
 ## b.create(id, creds)
 
