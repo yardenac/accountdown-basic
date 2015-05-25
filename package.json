@@ -4,6 +4,7 @@
   "description": "username/password authentication for accountdown using salted hashes",
   "main": "index.js",
   "dependencies": {
+    "defined": "^1.0.0",
     "shasum": "^1.0.0"
   },
   "devDependencies": {

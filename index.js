@@ -1,21 +1,23 @@
 var crypto = require('crypto');
 var shasum = require('shasum');
+var defined = require('defined');
 
 module.exports = Basic;
 
-function Basic (db, prefix, accountKey) {
-    if (!(this instanceof Basic)) return new Basic(db, prefix, accountKey);
+function Basic (db, prefix, opts) {
+    if (!(this instanceof Basic)) return new Basic(db, prefix, opts);
     this.db = db;
     this.prefix = prefix;
-    this.accountKey = accountKey;
+    if (!opts) opts = {};
+    this._key = defined(opts.key, 'username');
 }
 
 Basic.prototype.verify = function (creds, cb) {
-    var err = checkCreds.bind(this)(creds);
+    var err = this._checkCreds(creds);
 
     if (err) return cb && process.nextTick(function () { cb(err) });
     
-    var key = this.prefix.concat(this.accountKey ? creds[this.accountKey] : creds.username);
+    var key = this.prefix.concat(creds[this._key]);
     this.db.get(key, function (err, row) {
         if (err && err.type === 'NotFoundError') {
             return cb(null, false);
@@ -33,7 +35,7 @@ Basic.prototype.verify = function (creds, cb) {
 };
 
 Basic.prototype.create = function (id, creds) {
-    var err = checkCreds.bind(this)(creds);
+    var err = this._checkCreds(creds);
     if (err) return err;
     
     var salt = crypto.randomBytes(16);
@@ -41,7 +43,7 @@ Basic.prototype.create = function (id, creds) {
     
     return [
         {
-            key: this.prefix.concat(this.accountKey ? creds[this.accountKey] : creds.username),
+            key: this.prefix.concat(creds[this._key]),
             value: {
                 id: id,
                 hash: shasum(Buffer.concat([ salt, pw ])),
@@ -51,13 +53,12 @@ Basic.prototype.create = function (id, creds) {
     ];
 };
 
-function checkCreds (creds) {
+Basic.prototype._checkCreds = function (creds) {
     if (!creds || typeof creds !== 'object') {
         return new Error('supplied credentials are not an object');
     }
-    var key = this.accountKey ? this.accountKey : 'username';
-    if (!creds[key]) {
-        return new Error(key.concat(' required'));
+    if (!creds[this._key]) {
+        return new Error(this._key.concat(' required'));
     }
     var pw = creds.password;
     if (pw === undefined) {
@@ -67,7 +68,7 @@ function checkCreds (creds) {
     if (!Buffer.isBuffer(pw)) {
         return new Error('password must be a string or buffer');
     }
-}
+};
 
 function error (code, msg) {
     var err = new Error(msg);
