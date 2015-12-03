@@ -61,7 +61,7 @@ Basic.prototype._checkCreds = function (creds) {
         return new Error(this._key.concat(' required'));
     }
     var pw = creds.password;
-    if (pw === undefined) {
+    if ((pw === undefined) || (pw === "")) {
         return new Error('password required');
     }
     if (typeof pw === 'string') pw = Buffer(pw);
